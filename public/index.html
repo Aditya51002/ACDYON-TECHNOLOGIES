@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Job Ingestion Pipeline - Resilient ATS & Public Sourcing Engine</title>
-  <meta name="description" content="Job listings ingestion pipeline with public ATS/open source routing, exponential backoff, cache fallback, schema drift detection, and content-hash deduplication.">
+  <meta name="description" content="Job listings ingestion pipeline with public ATS/open source routing, Bronze/Silver/Gold storage, circuit breaking, schema contracts, DLQ, and content-hash deduplication.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -84,7 +84,7 @@
         <div class="action-card-header">
           <div>
             <h2 class="card-title">Live Pipeline Dispatcher</h2>
-          <p class="card-description">Trigger public API ingestion, test resilient fallback caches, or simulate schema drift loud errors.</p>
+          <p class="card-description">Trigger public API ingestion, test cache fallback, or simulate schema drift escalation.</p>
           </div>
           <div class="trigger-actions">
             <button class="btn btn-primary" id="btn-trigger-all">
@@ -150,7 +150,7 @@
             <div class="tier-badge-pill tier-3">Tier 3 • Design Only</div>
             <span class="tier-cost-tag">No live source</span>
           </div>
-          <h4 class="tier-name">Hostile Aggregator Boundary</h4>
+          <h4 class="tier-name">Tier 3 Boundary</h4>
           <p class="tier-description">No LinkedIn, Naukri, Wellfound, or other hostile aggregator has a live source, parser, cache seed, or toggle.</p>
           <div class="source-items-list" id="tier-3-sources-list">
             <!-- Rendered by JS -->
@@ -191,7 +191,7 @@
               <option value="">All Tiers</option>
               <option value="1">Tier 1: Direct ATS</option>
               <option value="2">Tier 2: Public API / Feeds</option>
-              <option value="3">Tier 3: Aggregator</option>
+              <option value="3">Tier 3: Design-only boundary</option>
             </select>
           </div>
 
@@ -323,9 +323,10 @@
           </div>
           <p class="decision-lead">The core strategic rule: <em>Don't scrape what is already syndicated</em>.</p>
           <ul class="decision-list">
-            <li><strong>Tier 1 — Direct ATS APIs:</strong> Workday, Greenhouse, Lever, Ashby, SmartRecruiters publish public, no-auth JSON APIs covering 220,000+ companies. Zero ban risk, superior data quality.</li>
-            <li><strong>Tier 2 — Licensed/Partner Feeds:</strong> RSS & public APIs designed for programmatic consumption.</li>
+            <li><strong>Tier 1 - Direct ATS APIs:</strong> Greenhouse is live, with Lever and Ashby-compatible parser support for public board payloads.</li>
+            <li><strong>Tier 2 - Licensed/Partner Feeds:</strong> RemoteOK, Arbeitnow, and Jobicy expose public APIs designed for programmatic consumption.</li>
             <li><strong>Tier 3 - Design Only:</strong> Hostile aggregators have no live source entry, parser, cache seed, or re-enable toggle in this repo.</li>
+            <li><strong>Incremental Fetching:</strong> Updated-at watermarks skip already-seen records while Bronze still preserves raw payloads.</li>
             <li><strong>Last-Good Cache Fallback:</strong> Public API snapshots are cached only after real successful runs.</li>
           </ul>
         </article>
@@ -334,13 +335,13 @@
         <article class="decision-card glass-panel">
           <div class="decision-card-top">
             <span class="decision-num">03</span>
-            <h3 class="decision-title">Resilience & Self-Healing Tradeoffs</h3>
+            <h3 class="decision-title">Resilience & Data Quality</h3>
           </div>
           <p class="decision-lead">Nothing in this pipeline fails silently. A malformed response is caught; a schema change is loud.</p>
           <ul class="decision-list">
-            <li><strong>Tier 1: Retry & Circuit-Breaking:</strong> Exponential backoff with full jitter handles transient network glitches.</li>
-            <li><strong>Tier 2: Schema-Drift Detection:</strong> Compares incoming field shapes against canonical schema. 100% drift triggers a loud halt to avoid data corruption.</li>
-            <li><strong>Tier 3: Self-Healing Traps:</strong> While self-healing loops boost completion (from ~64% to 92%), LLM selector proposals can hallucinate. Deterministic substring verification against raw HTML is mandatory before promotion.</li>
+            <li><strong>Retry & Circuit Breaking:</strong> Exponential backoff with jitter handles transient failures; repeated failures open a source-level circuit.</li>
+            <li><strong>Schema Contracts & DLQ:</strong> Canonical Zod validation catches drift, while malformed records are retained in a dead-letter queue.</li>
+            <li><strong>Entity Resolution Bands:</strong> Exact hashes dedupe automatically; high-confidence fuzzy matches merge; ambiguous matches enter review.</li>
           </ul>
         </article>
 
@@ -352,7 +353,7 @@
           </div>
           <p class="decision-lead">Grounded in modern 9th Circuit case law rather than vague compliance gestures.</p>
           <ul class="decision-list">
-            <li><strong>Public, Logged-Out Data Only:</strong> <em>hiQ v. LinkedIn</em> and <em>Meta v. Bright Data</em> (2024) affirm CFAA doesn't prohibit scraping public, unauthenticated data.</li>
+            <li><strong>Public, Logged-Out Data Only:</strong> <em>hiQ v. LinkedIn</em> and <em>Meta v. Bright Data</em> inform the public-data boundary used here.</li>
             <li><strong>Zero Auth Bypass:</strong> No fake accounts, credential stuffing, or bypassing login walls.</li>
             <li><strong>No Commercial Resale of Personal Data:</strong> Prevents breach-of-contract liability and privacy regulatory exposure.</li>
             <li><strong>Rule of Thumb:</strong> If data isn't reachable without login, find the licensed partner API instead of trying to hide deeper.</li>

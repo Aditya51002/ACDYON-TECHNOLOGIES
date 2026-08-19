@@ -327,7 +327,7 @@ function updateTelemetryView(m) {
       <span class="dist-bar-count">${t2}</span>
     </div>
     <div class="dist-bar-row">
-      <span class="dist-bar-label">Tier 3 (Agg)</span>
+      <span class="dist-bar-label">Tier 3 (Design)</span>
       <div class="dist-bar-track">
         <div class="dist-bar-fill tier-3" style="width: ${(t3 / total) * 100}%"></div>
       </div>
@@ -478,7 +478,7 @@ function renderJobsGrid(jobs) {
 
   el.jobsGrid.innerHTML = jobs.map(job => {
     const tierBadgeClass = `tier-${job.source_tier}`;
-    const tierLabel = job.source_tier === 1 ? 'Tier 1 • ATS' : (job.source_tier === 2 ? 'Tier 2 • Public' : 'Tier 3 • Aggregator');
+    const tierLabel = job.source_tier === 1 ? 'Tier 1 - ATS' : (job.source_tier === 2 ? 'Tier 2 - Public' : 'Tier 3 - Design');
     const salaryText = job.salary_raw || (job.salary_min && job.salary_max ? `$${job.salary_min.toLocaleString()} - $${job.salary_max.toLocaleString()}` : null);
     const shortHash = job.content_hash ? job.content_hash.slice(0, 10) + '...' : 'hash_n/a';
     const postedDate = job.posted_at ? new Date(job.posted_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent';

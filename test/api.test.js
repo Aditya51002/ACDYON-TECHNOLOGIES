@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { setDb, getDb, closeDb, upsertJobs } from '../src/db.js';
 import { startServer } from '../src/server.js';
+import { SCHEMA_VERSION } from '../src/schema.js';
 
 let serverInstance;
 const TEST_PORT = 3198;
@@ -28,11 +29,16 @@ before(async () => {
       salary_min: 150000,
       salary_max: 200000,
       salary_currency: 'USD',
+      salary_raw: '$150000 - $200000',
+      salary_min_usd: 150000,
+      salary_max_usd: 200000,
+      salary_annual_usd: 175000,
       description: 'Building next generation AI systems',
       tags: ['TypeScript', 'Node.js', 'React'],
       source_id: 'test_src',
       source_name: 'Test Source',
-      source_tier: 1
+      source_tier: 1,
+      completeness_score: 1
     }
   ]);
 
@@ -58,11 +64,22 @@ test('API - GET /health returns status healthy and database info', async () => {
 test('API - GET /jobs returns jobs with pagination and filters', async () => {
   const res = await fetch(`${BASE_URL}/jobs?search=Antigravity`);
   assert.equal(res.status, 200);
+  assert.equal(res.headers.get('x-schema-version'), SCHEMA_VERSION);
   const json = await res.json();
   assert.equal(json.success, true);
+  assert.equal(json.schemaVersion, SCHEMA_VERSION);
   assert.equal(json.data.length, 1);
   assert.equal(json.data[0].company, 'Antigravity Systems');
   assert.equal(json.pagination.total, 1);
+});
+
+test('API - GET /jobs supports minCompleteness filter', async () => {
+  const res = await fetch(`${BASE_URL}/jobs?minCompleteness=0.75`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.equal(json.pagination.total, 1);
+  assert.ok(json.data[0].completeness_score >= 0.75);
 });
 
 test('API - GET /jobs/:id returns single job detail', async () => {
@@ -79,4 +96,13 @@ test('API - GET /api/metrics returns pipeline metrics', async () => {
   const json = await res.json();
   assert.equal(json.success, true);
   assert.ok(json.data.totalJobs >= 1);
+  assert.equal(json.data.schemaVersion, SCHEMA_VERSION);
+  assert.ok(Array.isArray(json.data.sourceObservability));
+});
+
+test('API - GET /metrics aliases metrics endpoint', async () => {
+  const res = await fetch(`${BASE_URL}/metrics`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
 });

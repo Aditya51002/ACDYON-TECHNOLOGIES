@@ -14,7 +14,8 @@ export const DEFAULT_SOURCES = [
     tier: 1,
     endpoint: 'https://boards-api.greenhouse.io/v1/boards/figma/jobs',
     enabled: true,
-    rate_limit_ms: 500
+    rate_limit_ms: 500,
+    supports_updated_at: true
   },
   {
     id: 'greenhouse_cloudflare',
@@ -23,7 +24,8 @@ export const DEFAULT_SOURCES = [
     tier: 1,
     endpoint: 'https://boards-api.greenhouse.io/v1/boards/cloudflare/jobs',
     enabled: true,
-    rate_limit_ms: 500
+    rate_limit_ms: 500,
+    supports_updated_at: true
   },
   {
     id: 'greenhouse_stripe',
@@ -32,7 +34,8 @@ export const DEFAULT_SOURCES = [
     tier: 1,
     endpoint: 'https://boards-api.greenhouse.io/v1/boards/stripe/jobs',
     enabled: true,
-    rate_limit_ms: 500
+    rate_limit_ms: 500,
+    supports_updated_at: true
   },
   {
     id: 'greenhouse_discord',
@@ -41,7 +44,8 @@ export const DEFAULT_SOURCES = [
     tier: 1,
     endpoint: 'https://boards-api.greenhouse.io/v1/boards/discord/jobs',
     enabled: true,
-    rate_limit_ms: 500
+    rate_limit_ms: 500,
+    supports_updated_at: true
   },
 
   // Tier 2 — Open / Integration-Friendly Public Job Board APIs
@@ -52,7 +56,8 @@ export const DEFAULT_SOURCES = [
     tier: 2,
     endpoint: 'https://remoteok.com/api',
     enabled: true,
-    rate_limit_ms: 1200
+    rate_limit_ms: 1200,
+    supports_updated_at: true
   },
   {
     id: 'arbeitnow',
@@ -61,7 +66,8 @@ export const DEFAULT_SOURCES = [
     tier: 2,
     endpoint: 'https://www.arbeitnow.com/api/job-board-api',
     enabled: true,
-    rate_limit_ms: 1000
+    rate_limit_ms: 1000,
+    supports_updated_at: true
   },
   {
     id: 'jobicy',
@@ -70,7 +76,8 @@ export const DEFAULT_SOURCES = [
     tier: 2,
     endpoint: 'https://jobicy.com/api/v2/remote-jobs',
     enabled: true,
-    rate_limit_ms: 1000
+    rate_limit_ms: 1000,
+    supports_updated_at: true
   }
 ];
 

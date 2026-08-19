@@ -21,6 +21,7 @@ import {
   startScheduler, 
   getSchedulerStatus 
 } from './scheduler.js';
+import { SCHEMA_VERSION } from './schema.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -108,6 +109,7 @@ const handleJobs = (req, res) => {
       source, 
       category, 
       isRemote, 
+      minCompleteness,
       page = 1, 
       limit = 20, 
       sortBy = 'posted_at', 
@@ -121,14 +123,17 @@ const handleJobs = (req, res) => {
       source,
       category,
       isRemote,
+      minCompleteness,
       page: Number(page),
       limit: Math.min(100, Number(limit)),
       sortBy,
       sortOrder
     });
 
+    res.set('X-Schema-Version', SCHEMA_VERSION);
     res.json({
       success: true,
+      schemaVersion: SCHEMA_VERSION,
       data: result.jobs,
       pagination: {
         total: result.total,
@@ -202,17 +207,20 @@ app.get('/api/sources', (req, res) => {
   }
 });
 
-/**
- * Get pipeline summary metrics
- */
-app.get('/api/metrics', (req, res) => {
+const handleMetrics = (req, res) => {
   try {
     const metrics = getPipelineMetrics();
     res.json({ success: true, data: metrics });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
-});
+};
+
+/**
+ * Get pipeline summary metrics
+ */
+app.get('/metrics', handleMetrics);
+app.get('/api/metrics', handleMetrics);
 
 /**
  * Trigger manual ingestion run or simulation
