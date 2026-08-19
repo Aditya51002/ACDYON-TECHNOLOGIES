@@ -6,108 +6,10 @@ import { DEFAULT_SOURCES, getSourceById } from './sources.js';
 let isRunning = false;
 
 /**
- * Initialize sources into DB and prime Tier 3 fallback caches
+ * Initialize configured Tier 1/2 sources into DB.
  */
 export function initializeSources() {
   seedSources(DEFAULT_SOURCES);
-
-  // Prime initial last-known-good cache for Wellfound (Startups) if not present
-  const currentWfCache = getRawCache('wellfound_startups');
-  if (!currentWfCache || !Array.isArray(currentWfCache.data) || currentWfCache.data.length === 0) {
-    const sampleWellfound = [
-      {
-        id: 'wf_101',
-        title: 'Senior Full Stack Engineer (AI / LLM Platform)',
-        company: 'Synthesia Labs',
-        location: 'San Francisco, CA (Remote)',
-        remote: true,
-        salary_min: 160000,
-        salary_max: 210000,
-        salary_raw: '$160k - $210k • 0.1% - 0.5% Equity',
-        url: 'https://wellfound.com/jobs/synthesia-senior-full-stack',
-        tags: ['React', 'Node.js', 'Python', 'AI'],
-        pitch: 'Join an early stage generative media startup scaling to 10M users.'
-      },
-      {
-        id: 'wf_102',
-        title: 'Lead Product Designer',
-        company: 'Linear Ecosystems',
-        location: 'Remote',
-        remote: true,
-        salary_min: 150000,
-        salary_max: 190000,
-        salary_raw: '$150k - $190k • 0.2% Equity',
-        url: 'https://wellfound.com/jobs/linear-lead-designer',
-        tags: ['Figma', 'Design Systems', 'Product Design'],
-        pitch: 'Craft world-class UX for developer productivity tools.'
-      },
-      {
-        id: 'wf_103',
-        title: 'Backend Systems Engineer (Rust / Distributed Systems)',
-        company: 'Warp Technologies',
-        location: 'New York, NY (Remote)',
-        remote: true,
-        salary_min: 175000,
-        salary_max: 230000,
-        salary_raw: '$175k - $230k • 0.15% Equity',
-        url: 'https://wellfound.com/jobs/warp-rust-systems',
-        tags: ['Rust', 'Distributed Systems', 'Kubernetes', 'Go'],
-        pitch: 'Building modern GPU-accelerated cloud infrastructure.'
-      }
-    ];
-    saveRawCache('wellfound_startups', sampleWellfound, sampleWellfound.length);
-  }
-
-  // Prime initial last-known-good cache for Naukri (India Tech) if not present
-  if (!getRawCache('naukri_tech_jobs')) {
-    const sampleNaukri = [
-      {
-        jobId: 'naukri_801',
-        title: 'Principal Software Engineer - Microservices & Cloud',
-        company: 'Razorpay',
-        location: 'Bangalore / Bengaluru, India',
-        department: 'Fintech Payments Engineering',
-        url: 'https://www.naukri.com/job-listings-razorpay-principal-engineer',
-        tagsAndSkills: 'Go, Kubernetes, AWS, Microservices, Distributed Systems, Kafka',
-        salary_raw: '₹45,00,000 - ₹65,00,000 PA',
-        description: 'Lead high-throughput payment transaction pipelines handling billions in monthly volume.'
-      },
-      {
-        jobId: 'naukri_802',
-        title: 'Senior Frontend Architect (Next.js / TypeScript)',
-        company: 'Swiggy',
-        location: 'Bangalore, India (Hybrid)',
-        department: 'Consumer Engineering',
-        url: 'https://www.naukri.com/job-listings-swiggy-senior-frontend',
-        tagsAndSkills: 'React, Next.js, TypeScript, Web Performance, GraphQL',
-        salary_raw: '₹35,00,000 - ₹50,00,000 PA',
-        description: 'Architect snappy consumer interfaces with millions of concurrent daily active users.'
-      },
-      {
-        jobId: 'naukri_803',
-        title: 'Staff Site Reliability Engineer (SRE)',
-        company: 'Zomato',
-        location: 'Gurgaon / Delhi NCR, India',
-        department: 'Infrastructure & SRE',
-        url: 'https://www.naukri.com/job-listings-zomato-staff-sre',
-        tagsAndSkills: 'Kubernetes, Terraform, Python, Observability, Prometheus, AWS',
-        salary_raw: '₹40,00,000 - ₹60,00,000 PA',
-        description: 'Ensure 99.99% uptime across multi-region hybrid cloud deployments during peak sales events.'
-      },
-      {
-        jobId: 'naukri_804',
-        title: 'Lead Data Engineer (Spark / Snowflake)',
-        company: 'Flipkart',
-        location: 'Hyderabad / Bangalore, India',
-        department: 'Big Data Platform',
-        url: 'https://www.naukri.com/job-listings-flipkart-lead-data-engineer',
-        tagsAndSkills: 'Python, Apache Spark, Snowflake, Airflow, SQL, Kafka',
-        salary_raw: '₹38,00,000 - ₹55,00,000 PA',
-        description: 'Scale real-time analytics and ML feature stores for India’s largest e-commerce catalog.'
-      }
-    ];
-    saveRawCache('naukri_tech_jobs', sampleNaukri, sampleNaukri.length);
-  }
 }
 
 /**

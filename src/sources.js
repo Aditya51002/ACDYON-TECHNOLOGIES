@@ -2,7 +2,7 @@
  * Tiered Sourcing Configuration
  * Tier 1: Direct ATS APIs (Greenhouse, Lever, Ashby - fast, structured, no auth)
  * Tier 2: Open / Licensed Job Board APIs (RemoteOK, Arbeitnow, Jobicy)
- * Tier 3: Aggregator Sources & Evasion Simulation (LinkedIn, Wellfound, Naukri)
+ * Tier 3 hostile aggregators are design-only and intentionally have no live config.
  */
 
 export const DEFAULT_SOURCES = [
@@ -71,35 +71,6 @@ export const DEFAULT_SOURCES = [
     endpoint: 'https://jobicy.com/api/v2/remote-jobs',
     enabled: true,
     rate_limit_ms: 1000
-  },
-
-  // Tier 3 — Aggregator & Hostile Sources (Public Guest Ingestion & Cache Fallback)
-  {
-    id: 'linkedin_guest_jobs',
-    name: 'LinkedIn (Public Guest Jobs)',
-    type: 'aggregator_linkedin',
-    tier: 3,
-    endpoint: 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=Software%20Engineer&location=Remote&start=0',
-    enabled: true,
-    rate_limit_ms: 2000
-  },
-  {
-    id: 'wellfound_startups',
-    name: 'Wellfound (AngelList Startups)',
-    type: 'aggregator_wellfound',
-    tier: 3,
-    endpoint: 'https://wellfound.com/jobs',
-    enabled: true,
-    rate_limit_ms: 2000
-  },
-  {
-    id: 'naukri_tech_jobs',
-    name: 'Naukri (India Tech Jobs)',
-    type: 'aggregator_naukri',
-    tier: 3,
-    endpoint: 'https://www.naukri.com/jobapi/v3/search?noOfResults=20&keyword=software%20engineer',
-    enabled: true,
-    rate_limit_ms: 2000
   }
 ];
 

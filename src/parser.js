@@ -368,118 +368,6 @@ export function parseAndValidate(rawData, sourceConfig) {
   let rawCandidates = [];
   const type = sourceConfig.type;
 
-/**
- * Normalizer: LinkedIn Public Guest Search HTML
- * Endpoint: https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search
- */
-function parseLinkedInGuest(htmlStr, sourceConfig) {
-  const html = typeof htmlStr === 'string' ? htmlStr : JSON.stringify(htmlStr);
-  const cardRegex = /<div[^>]*class="[^"]*job-search-card[^"]*"[^>]*data-entity-urn="([^"]*)"[\s\S]*?<h3 class="base-search-card__title">\s*([\s\S]*?)\s*<\/h3>[\s\S]*?<h4 class="base-search-card__subtitle">([\s\S]*?)<\/h4>[\s\S]*?<span class="job-search-card__location">\s*([\s\S]*?)\s*<\/span>[\s\S]*?<a class="base-card__full-link[^\"]*" href="([^\"]+)"/g;
-
-  const results = [];
-  let match;
-  while ((match = cardRegex.exec(html)) !== null) {
-    const urn = match[1];
-    const title = cleanText(match[2]);
-    const company = cleanText(match[3]);
-    const location = cleanText(match[4]) || 'Remote';
-    const url = match[5].split('?')[0];
-
-    if (title && company && url) {
-      results.push({
-        external_id: urn,
-        title,
-        company,
-        location,
-        is_remote: checkIsRemote(location, title),
-        job_type: 'Full-time',
-        category: 'Engineering',
-        url,
-        salary_min: null,
-        salary_max: null,
-        salary_currency: null,
-        salary_raw: null,
-        description: `Public LinkedIn guest job listing for ${title} at ${company}.`,
-        tags: extractTags(`${title} Engineering`, ['LinkedIn', 'Engineering']),
-        posted_at: new Date().toISOString()
-      });
-    }
-  }
-
-  if (results.length > 0) return results;
-  if (Array.isArray(htmlStr)) return parseGenericJson(htmlStr, sourceConfig);
-  return [];
-}
-
-/**
- * Normalizer: Wellfound (AngelList) Startup Job Listings
- */
-function parseWellfound(raw, sourceConfig) {
-  const items = Array.isArray(raw) ? raw : (raw?.jobs || raw?.listings || []);
-  return items.map(item => {
-    if (!item || typeof item !== 'object') return null;
-    const title = (item.title || item.role || item.position || '').trim();
-    const company = (item.company || item.company_name || item.startup_name || '').trim();
-    const url = item.url || item.job_url || (item.slug ? `https://wellfound.com/jobs/${item.slug}` : 'https://wellfound.com');
-    const location = item.location || (item.remote ? 'Remote' : 'San Francisco, CA');
-    const salary = item.salary_raw || item.compensation || (item.salary_min && item.salary_max ? `$${item.salary_min.toLocaleString()} - $${item.salary_max.toLocaleString()}` : null);
-    const tags = Array.isArray(item.tags) ? item.tags : (item.skills || ['Startups']);
-
-    return {
-      external_id: String(item.id || item.slug || ''),
-      title,
-      company,
-      location,
-      is_remote: Boolean(item.remote || checkIsRemote(location, title)),
-      job_type: item.job_type || 'Full-time',
-      category: item.category || 'Tech Startups',
-      url,
-      salary_min: item.salary_min ? Number(item.salary_min) : null,
-      salary_max: item.salary_max ? Number(item.salary_max) : null,
-      salary_currency: item.salary_currency || 'USD',
-      salary_raw: salary,
-      description: cleanText(item.description || item.pitch || ''),
-      tags: extractTags(`${title} ${tags.join(' ')}`, ['Wellfound', ...tags]),
-      posted_at: item.posted_at || new Date().toISOString()
-    };
-  });
-}
-
-/**
- * Normalizer: Naukri India Tech Job Listings
- */
-function parseNaukri(raw, sourceConfig) {
-  const items = Array.isArray(raw) ? raw : (raw?.jobDetails || raw?.jobs || raw?.data || []);
-  return items.map(item => {
-    if (!item || typeof item !== 'object') return null;
-    const title = (item.title || item.jobTitle || '').trim();
-    const company = (item.companyName || item.company || '').trim();
-    const url = item.staticUrl ? (item.staticUrl.startsWith('http') ? item.staticUrl : `https://www.naukri.com${item.staticUrl}`) : (item.url || 'https://www.naukri.com');
-    const locPlaceholder = item.placeholders?.find(p => p.type === 'location')?.label;
-    const location = locPlaceholder || item.location || 'Bangalore, India';
-    const salPlaceholder = item.placeholders?.find(p => p.type === 'salary')?.label;
-    const tags = item.tagsAndSkills ? item.tagsAndSkills.split(',').map(s => s.trim()) : (item.tags || ['Naukri']);
-
-    return {
-      external_id: String(item.jobId || item.id || ''),
-      title,
-      company,
-      location,
-      is_remote: checkIsRemote(location, title),
-      job_type: item.jobType || 'Full-time',
-      category: item.department || 'Software Development',
-      url,
-      salary_min: item.salary_min || null,
-      salary_max: item.salary_max || null,
-      salary_currency: 'INR',
-      salary_raw: salPlaceholder || item.salary_raw || null,
-      description: cleanText(item.jobDescription || item.description || ''),
-      tags: extractTags(`${title} ${tags.join(' ')}`, ['Naukri', ...tags]),
-      posted_at: item.createdDate ? new Date(item.createdDate).toISOString() : new Date().toISOString()
-    };
-  });
-}
-
   switch (type) {
     case 'ats_greenhouse':
       rawCandidates = parseGreenhouse(rawData, sourceConfig);
@@ -501,18 +389,6 @@ function parseNaukri(raw, sourceConfig) {
     case 'public_api_jobicy':
     case 'jobicy':
       rawCandidates = parseJobicy(rawData, sourceConfig);
-      break;
-    case 'aggregator_linkedin':
-    case 'linkedin':
-      rawCandidates = parseLinkedInGuest(rawData, sourceConfig);
-      break;
-    case 'aggregator_wellfound':
-    case 'wellfound':
-      rawCandidates = parseWellfound(rawData, sourceConfig);
-      break;
-    case 'aggregator_naukri':
-    case 'naukri':
-      rawCandidates = parseNaukri(rawData, sourceConfig);
       break;
     default:
       rawCandidates = parseGenericJson(rawData, sourceConfig);

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Ingestion Pipeline — Resilient ATS & Public Sourcing Engine</title>
-  <meta name="description" content="Production-grade job listings ingestion pipeline with Tiered Source Routing, Exponential Backoff, Last-Good Cache Fallback, Schema Drift Loud Escalation, and Content-Hash Deduplication.">
+  <title>Job Ingestion Pipeline - Resilient ATS & Public Sourcing Engine</title>
+  <meta name="description" content="Job listings ingestion pipeline with public ATS/open source routing, exponential backoff, cache fallback, schema drift detection, and content-hash deduplication.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -84,7 +84,7 @@
         <div class="action-card-header">
           <div>
             <h2 class="card-title">Live Pipeline Dispatcher</h2>
-            <p class="card-description">Trigger live multi-tier ingestion, test resilient fallback caches, or simulate schema drift loud errors.</p>
+          <p class="card-description">Trigger public API ingestion, test resilient fallback caches, or simulate schema drift loud errors.</p>
           </div>
           <div class="trigger-actions">
             <button class="btn btn-primary" id="btn-trigger-all">
@@ -147,11 +147,11 @@
         <!-- Tier 3 -->
         <div class="tier-card tier-3-card">
           <div class="tier-card-header">
-            <div class="tier-badge-pill tier-3">Tier 3 • Aggregator Last Resort</div>
-            <span class="tier-cost-tag">Design-Grade Pacing</span>
+            <div class="tier-badge-pill tier-3">Tier 3 • Design Only</div>
+            <span class="tier-cost-tag">No live source</span>
           </div>
-          <h4 class="tier-name">Hostile Aggregator Simulation</h4>
-          <p class="tier-description">Session rate budgets, geographic consistency, and immediate last-known-good cache fallback on block.</p>
+          <h4 class="tier-name">Hostile Aggregator Boundary</h4>
+          <p class="tier-description">No LinkedIn, Naukri, Wellfound, or other hostile aggregator has a live source, parser, cache seed, or toggle.</p>
           <div class="source-items-list" id="tier-3-sources-list">
             <!-- Rendered by JS -->
           </div>
@@ -294,8 +294,8 @@
     <section class="tab-pane" id="tab-architecture">
       <div class="decisions-hub-header">
         <div class="decisions-badge">Architecture & Compliance Blueprint</div>
-        <h2 class="decisions-main-title">Engineering Decisions & Hostile Source Defense</h2>
-        <p class="decisions-intro">Detailed analysis of anti-bot detection surfaces, tiered syndication strategy, self-healing resilience tradeoffs, and public data legal boundaries.</p>
+        <h2 class="decisions-main-title">Engineering Decisions & Source Boundaries</h2>
+        <p class="decisions-intro">Analysis of detection surfaces, public API sourcing, resilience tradeoffs, and legal boundaries.</p>
       </div>
 
       <div class="decisions-accordion-grid">
@@ -325,8 +325,8 @@
           <ul class="decision-list">
             <li><strong>Tier 1 — Direct ATS APIs:</strong> Workday, Greenhouse, Lever, Ashby, SmartRecruiters publish public, no-auth JSON APIs covering 220,000+ companies. Zero ban risk, superior data quality.</li>
             <li><strong>Tier 2 — Licensed/Partner Feeds:</strong> RSS & public APIs designed for programmatic consumption.</li>
-            <li><strong>Tier 3 — Evasion as Last Resort:</strong> Scoped down to the rare role with no upstream ATS. Uses workflow-segmented IP rotation, geographic consistency, and rate budgets.</li>
-            <li><strong>Last-Good Cache Fallback:</strong> If a hostile source goes dark, pipeline serves last-known-good cache while alerting — degrading completeness, never availability.</li>
+            <li><strong>Tier 3 - Design Only:</strong> Hostile aggregators have no live source entry, parser, cache seed, or re-enable toggle in this repo.</li>
+            <li><strong>Last-Good Cache Fallback:</strong> Public API snapshots are cached only after real successful runs.</li>
           </ul>
         </article>
 

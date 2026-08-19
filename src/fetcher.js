@@ -81,9 +81,8 @@ export async function fetchWithRetry(url, {
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       const defaultHeaders = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 JobPipelineBot/1.0 (Integration; +https://github.com/job-pipeline)',
+        'User-Agent': 'job-pipeline-demo/1.0 (+https://github.com/job-pipeline)',
         'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9',
         ...headers
       };
 
