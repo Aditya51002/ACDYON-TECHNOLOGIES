@@ -1,0 +1,31 @@
+{
+  "name": "job-listings-ingestion-pipeline",
+  "version": "1.0.0",
+  "description": "Production-grade, resilient job listings ingestion pipeline featuring Tiered ATS/Public sourcing, exponential backoff, last-good cache fallback, schema-drift detection, content hash deduplication, Express API, and real-time dashboard.",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test test/*.test.js",
+    "ingest": "node src/cli.js"
+  },
+  "keywords": [
+    "job-board",
+    "scraper",
+    "ats",
+    "greenhouse",
+    "lever",
+    "pipeline",
+    "deduplication",
+    "schema-drift",
+    "resilience"
+  ],
+  "author": "Antigravity",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

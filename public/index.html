@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Ingestion Pipeline — Resilient ATS & Public Sourcing Engine</title>
+  <meta name="description" content="Production-grade job listings ingestion pipeline with Tiered Source Routing, Exponential Backoff, Last-Good Cache Fallback, Schema Drift Loud Escalation, and Content-Hash Deduplication.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="logo-badge">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          <span class="pulse-dot"></span>
+        </div>
+        <div>
+          <h1 class="brand-title">IngestFlow <span class="badge-version">v1.0</span></h1>
+          <p class="brand-subtitle">Resilient Job Listings Ingestion & Deduplication Pipeline</p>
+        </div>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-pill" title="Total active unique listings in SQLite">
+          <span class="stat-label">Active Jobs</span>
+          <span class="stat-val" id="stat-total-jobs">-</span>
+        </div>
+        <div class="stat-pill" title="Deduplication efficiency rate calculated via SHA-256 content hashes">
+          <span class="stat-label">Dedup Rate</span>
+          <span class="stat-val highlight-emerald" id="stat-dedup-rate">-</span>
+        </div>
+        <div class="stat-pill" title="Total pipeline ingestion runs executed">
+          <span class="stat-label">Total Runs</span>
+          <span class="stat-val" id="stat-total-runs">-</span>
+        </div>
+        <div class="status-indicator-badge healthy" id="system-health-badge">
+          <span class="status-indicator-dot"></span>
+          <span id="health-status-text">System Live</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs-wrapper">
+    <div class="nav-tabs-container">
+      <button class="nav-tab active" data-tab="pipeline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Pipeline & Live Control
+      </button>
+      <button class="nav-tab" data-tab="jobs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        Job Listings Explorer
+        <span class="tab-badge" id="jobs-count-badge">0</span>
+      </button>
+      <button class="nav-tab" data-tab="telemetry">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Telemetry & Runs
+      </button>
+      <button class="nav-tab" data-tab="architecture">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        DECISIONS & Strategy
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="main-layout">
+
+    <!-- TAB 1: PIPELINE & LIVE CONTROL -->
+    <section class="tab-pane active" id="tab-pipeline">
+      <!-- Quick Control Action Bar -->
+      <div class="action-card glass-panel">
+        <div class="action-card-header">
+          <div>
+            <h2 class="card-title">Live Pipeline Dispatcher</h2>
+            <p class="card-description">Trigger live multi-tier ingestion, test resilient fallback caches, or simulate schema drift loud errors.</p>
+          </div>
+          <div class="trigger-actions">
+            <button class="btn btn-primary" id="btn-trigger-all">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run All Enabled Sources
+            </button>
+            <button class="btn btn-warning" id="btn-simulate-outage" title="Simulates upstream network 500 error to trigger degraded last-good cache fallback">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Simulate Outage Fallback
+            </button>
+            <button class="btn btn-danger" id="btn-simulate-drift" title="Simulates corrupted upstream payload to demonstrate loud schema drift escalation">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Simulate Schema Drift
+            </button>
+          </div>
+        </div>
+
+        <div class="source-select-bar">
+          <label for="select-single-source">Target Individual Source:</label>
+          <select id="select-single-source" class="select-input">
+            <option value="">-- Choose specific source --</option>
+          </select>
+          <button class="btn btn-secondary" id="btn-trigger-single">Run Target Source</button>
+        </div>
+      </div>
+
+      <!-- Tiered Source Router Visualizer -->
+      <div class="section-title-group">
+        <h3 class="section-heading">Tiered Ingestion Routing Architecture</h3>
+        <span class="subheading-tag">Strategy: Don't scrape what is already syndicated</span>
+      </div>
+
+      <div class="tiers-grid">
+        <!-- Tier 1 -->
+        <div class="tier-card tier-1-card">
+          <div class="tier-card-header">
+            <div class="tier-badge-pill tier-1">Tier 1 • Direct ATS APIs</div>
+            <span class="tier-cost-tag">Zero Ban Risk • Structured JSON</span>
+          </div>
+          <h4 class="tier-name">Greenhouse & Lever Syndication</h4>
+          <p class="tier-description">Pulls directly from open corporate ATS endpoints (no auth, fast, complete salary & location metadata).</p>
+          <div class="source-items-list" id="tier-1-sources-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Tier 2 -->
+        <div class="tier-card tier-2-card">
+          <div class="tier-card-header">
+            <div class="tier-badge-pill tier-2">Tier 2 • Open / Partner Feeds</div>
+            <span class="tier-cost-tag">Licensed & Public APIs</span>
+          </div>
+          <h4 class="tier-name">RemoteOK & Arbeitnow Public Feeds</h4>
+          <p class="tier-description">Public integration-friendly endpoints with polite domain rate limiting, backoff, and jittered pacing.</p>
+          <div class="source-items-list" id="tier-2-sources-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Tier 3 -->
+        <div class="tier-card tier-3-card">
+          <div class="tier-card-header">
+            <div class="tier-badge-pill tier-3">Tier 3 • Aggregator Last Resort</div>
+            <span class="tier-cost-tag">Design-Grade Pacing</span>
+          </div>
+          <h4 class="tier-name">Hostile Aggregator Simulation</h4>
+          <p class="tier-description">Session rate budgets, geographic consistency, and immediate last-known-good cache fallback on block.</p>
+          <div class="source-items-list" id="tier-3-sources-list">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Execution Log Stream -->
+      <div class="glass-panel logs-panel">
+        <div class="logs-header">
+          <div class="logs-title-group">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            <h3 class="card-title">Live Pipeline Event Stream</h3>
+          </div>
+          <button class="btn-text" id="btn-clear-logs">Clear Logs</button>
+        </div>
+        <div class="terminal-window" id="pipeline-live-logs">
+          <div class="log-line log-info">[System] Pipeline Engine initialized. Ready for ingestion trigger.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: JOB LISTINGS EXPLORER -->
+    <section class="tab-pane" id="tab-jobs">
+      <div class="jobs-filter-panel glass-panel">
+        <div class="filter-row-primary">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="filter-search" placeholder="Search by title, company, technology (e.g. React, Python, Figma)..." />
+          </div>
+          <button class="btn btn-secondary" id="btn-reset-filters">Reset Filters</button>
+        </div>
+
+        <div class="filter-row-secondary">
+          <div class="filter-group">
+            <label>Source Tier:</label>
+            <select id="filter-tier" class="select-input">
+              <option value="">All Tiers</option>
+              <option value="1">Tier 1: Direct ATS</option>
+              <option value="2">Tier 2: Public API / Feeds</option>
+              <option value="3">Tier 3: Aggregator</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Workplace:</label>
+            <select id="filter-remote" class="select-input">
+              <option value="">All Locations</option>
+              <option value="true">Remote Only</option>
+              <option value="false">Onsite / Hybrid</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label>Sort By:</label>
+            <select id="filter-sort" class="select-input">
+              <option value="posted_at">Newest Posted</option>
+              <option value="ingested_at">Recently Ingested</option>
+              <option value="company">Company (A-Z)</option>
+              <option value="title">Title (A-Z)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Jobs Grid -->
+      <div class="jobs-results-header">
+        <span id="jobs-results-count">Loading listings...</span>
+        <div class="pagination-controls" id="pagination-controls">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <div class="jobs-grid" id="jobs-grid-container">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: TELEMETRY & RUNS -->
+    <section class="tab-pane" id="tab-telemetry">
+      <div class="metrics-summary-grid">
+        <div class="metric-card glass-panel">
+          <span class="metric-title">Deduplication Efficiency</span>
+          <div class="metric-value-row">
+            <span class="metric-number highlight-emerald" id="telemetry-dedup-rate">0%</span>
+            <span class="metric-subtext">Duplicates filtered</span>
+          </div>
+          <p class="metric-desc">Identical postings syndicated across different channels are deduplicated via SHA-256 content hashes.</p>
+        </div>
+
+        <div class="metric-card glass-panel">
+          <span class="metric-title">Volume by Sourcing Tier</span>
+          <div class="tier-distribution-bars" id="tier-dist-bars">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div class="metric-card glass-panel">
+          <span class="metric-title">Resilience & Schema Drift</span>
+          <div class="metric-value-row">
+            <span class="metric-number highlight-cyan" id="telemetry-runs-success">0</span>
+            <span class="metric-subtext">Clean runs</span>
+          </div>
+          <div class="resilience-stats-sub">
+            <span>Cache Fallbacks: <strong id="telemetry-runs-cache">0</strong></span>
+            <span>Drift Alarms: <strong id="telemetry-runs-drift" class="highlight-crimson">0</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Runs History Table -->
+      <div class="section-title-group" style="margin-top: 2rem;">
+        <h3 class="section-heading">Ingestion Run History & Audit Trail</h3>
+      </div>
+
+      <div class="glass-panel table-container">
+        <table class="data-table" id="runs-history-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Source Name</th>
+              <th>Tier</th>
+              <th>Status</th>
+              <th>Fetched</th>
+              <th>Parsed</th>
+              <th>Inserted</th>
+              <th>Deduped</th>
+              <th>Skipped</th>
+              <th>Duration</th>
+              <th>Diagnostics</th>
+            </tr>
+          </thead>
+          <tbody id="runs-table-body">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: DECISIONS & ARCHITECTURE -->
+    <section class="tab-pane" id="tab-architecture">
+      <div class="decisions-hub-header">
+        <div class="decisions-badge">Architecture & Compliance Blueprint</div>
+        <h2 class="decisions-main-title">Engineering Decisions & Hostile Source Defense</h2>
+        <p class="decisions-intro">Detailed analysis of anti-bot detection surfaces, tiered syndication strategy, self-healing resilience tradeoffs, and public data legal boundaries.</p>
+      </div>
+
+      <div class="decisions-accordion-grid">
+        <!-- Section 1 -->
+        <article class="decision-card glass-panel">
+          <div class="decision-card-top">
+            <span class="decision-num">01</span>
+            <h3 class="decision-title">Detection Surface in 2026</h3>
+          </div>
+          <p class="decision-lead">Anti-bot defenses no longer rely on naive User-Agent or `navigator.webdriver` flags. Real defenses inspect cross-signal consistency.</p>
+          <ul class="decision-list">
+            <li><strong>Cross-Signal Consistency:</strong> A UA claiming Windows Chrome while WebGL reports SwiftShader/llvmpipe virtual GPU is an instant tell.</li>
+            <li><strong>Hardware-Level Fingerprints:</strong> Cloud VM GPUs are trivially distinguishable from consumer hardware; spoofing is compute-expensive at scale.</li>
+            <li><strong>Network-Layer Fingerprints (TLS/JA4):</strong> Requires transport-level patching, catching off-the-shelf scrapers automatically.</li>
+            <li><strong>Behavioral Biometrics:</strong> Micro-acceleration and natural cursor jitter vs scripted linear math.</li>
+            <li><strong>Adaptive Blocking:</strong> Thresholds evolve dynamically; absence of an immediate ban is not evidence of undetectability.</li>
+          </ul>
+        </article>
+
+        <!-- Section 2 -->
+        <article class="decision-card glass-panel">
+          <div class="decision-card-top">
+            <span class="decision-num">02</span>
+            <h3 class="decision-title">Tiered Sourcing Strategy</h3>
+          </div>
+          <p class="decision-lead">The core strategic rule: <em>Don't scrape what is already syndicated</em>.</p>
+          <ul class="decision-list">
+            <li><strong>Tier 1 — Direct ATS APIs:</strong> Workday, Greenhouse, Lever, Ashby, SmartRecruiters publish public, no-auth JSON APIs covering 220,000+ companies. Zero ban risk, superior data quality.</li>
+            <li><strong>Tier 2 — Licensed/Partner Feeds:</strong> RSS & public APIs designed for programmatic consumption.</li>
+            <li><strong>Tier 3 — Evasion as Last Resort:</strong> Scoped down to the rare role with no upstream ATS. Uses workflow-segmented IP rotation, geographic consistency, and rate budgets.</li>
+            <li><strong>Last-Good Cache Fallback:</strong> If a hostile source goes dark, pipeline serves last-known-good cache while alerting — degrading completeness, never availability.</li>
+          </ul>
+        </article>
+
+        <!-- Section 3 -->
+        <article class="decision-card glass-panel">
+          <div class="decision-card-top">
+            <span class="decision-num">03</span>
+            <h3 class="decision-title">Resilience & Self-Healing Tradeoffs</h3>
+          </div>
+          <p class="decision-lead">Nothing in this pipeline fails silently. A malformed response is caught; a schema change is loud.</p>
+          <ul class="decision-list">
+            <li><strong>Tier 1: Retry & Circuit-Breaking:</strong> Exponential backoff with full jitter handles transient network glitches.</li>
+            <li><strong>Tier 2: Schema-Drift Detection:</strong> Compares incoming field shapes against canonical schema. 100% drift triggers a loud halt to avoid data corruption.</li>
+            <li><strong>Tier 3: Self-Healing Traps:</strong> While self-healing loops boost completion (from ~64% to 92%), LLM selector proposals can hallucinate. Deterministic substring verification against raw HTML is mandatory before promotion.</li>
+          </ul>
+        </article>
+
+        <!-- Section 4 -->
+        <article class="decision-card glass-panel">
+          <div class="decision-card-top">
+            <span class="decision-num">04</span>
+            <h3 class="decision-title">Legal & Ethical Boundaries</h3>
+          </div>
+          <p class="decision-lead">Grounded in modern 9th Circuit case law rather than vague compliance gestures.</p>
+          <ul class="decision-list">
+            <li><strong>Public, Logged-Out Data Only:</strong> <em>hiQ v. LinkedIn</em> and <em>Meta v. Bright Data</em> (2024) affirm CFAA doesn't prohibit scraping public, unauthenticated data.</li>
+            <li><strong>Zero Auth Bypass:</strong> No fake accounts, credential stuffing, or bypassing login walls.</li>
+            <li><strong>No Commercial Resale of Personal Data:</strong> Prevents breach-of-contract liability and privacy regulatory exposure.</li>
+            <li><strong>Rule of Thumb:</strong> If data isn't reachable without login, find the licensed partner API instead of trying to hide deeper.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Job Detail / Content Hash Modal -->
+  <div class="modal-overlay" id="job-detail-modal">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-job-title">Job Details</h3>
+        <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-job-content">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>Job Listings Ingestion Pipeline &bull; Express API &bull; SQLite Deduplication &bull; DECISIONS.md Architecture</p>
+      <div class="footer-links">
+        <a href="/jobs" target="_blank">/jobs API</a>
+        <a href="/runs" target="_blank">/runs API</a>
+        <a href="/health" target="_blank">/health API</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
